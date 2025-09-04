@@ -35,3 +35,25 @@ The simulation is built to test the following variables:
 2.  **`Aggregation Function`**: To counteract the potential volatility from fast block times, different gas aggregation functions will be tested. The framework allows for any function that accepts a history of gas usage and returns a single value. Initial functions for testing include:
     - **`agg_last_block`**: The baseline, using only the parent block's gas. This is equivalent to the Ethereum EIP-1559 logic.
     - **`agg_moving_average`**: A simple moving average over a configurable window of recent blocks (e.g., 25).
+
+## Simulation Implementation Steps
+
+### 1. Parameter Definition
+We will begin by defining all Injective-specific parameters in a dedicated code cell within the Jupyter notebook. This step ensures that all constants are centralized, making it straightforward to modify them for different simulation scenarios.
+
+### 2. Core Logic Redefinition
+Next, I will implement the core base fee update logic specific to Injective in a new function. This function will use Injective's `max_change_rate` and enforce a minimum base fee to prevent it from dropping too low.
+
+### 3. New Simulation Function
+I will then create a new main simulation function that orchestrates the entire process. This function will incorporate the moving average calculation for the base fee and the periodic fee reset mechanism.
+
+### 4. Simulation Execution
+With the new logic in place, I will modify the execution part of the notebook. This involves calling the new simulation function and passing the appropriate demand scenario.
+
+### 5. Visualization Update
+Finally, I will update the visualization code to plot the new metrics from the Injective-specific simulation. This includes plotting the instantaneous base fee against the moving average base fee to analyze stability.
+
+
+
+
+
