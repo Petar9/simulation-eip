@@ -1,0 +1,37 @@
+# Methodology: Injective EIP-1559 Simulation
+
+## Objective
+This simulation adapts the Ethereum EIP-1559 model to the Injective network's specific characteristics. The primary goals are:
+1. To analyze the behavior of the base fee under Injective's consensus parameters.
+2. To determine a suitable gas aggregation strategy that provides fee stability despite Injective's fast block times (~600ms) compared to Ethereum's (~15s).
+3. To test and compare the impact of different maximum block gas limits on the network.
+
+## Parameter Comparison: Ethereum vs. Injective
+
+| Parameter | Ethereum's EIP-1559 | Injective's Adjusted Parameters | Rationale |
+|---|---|---|---|
+| **Initial Base Fee** | Varies based on network state | 160,000,000 | Starts at Injective's minimum gas price. |
+| **Min Base Fee** | Effectively 0 | 160,000,000 | Adopts Cosmos SDK's standard for spam resistance. |
+| **Block Gas Limit** | Dynamic target, e.g., 15M-30M | Test variable: 150M or 300M | Exploring optimal throughput for the Injective network. |
+| **Target Gas** | 50% of limit | 62.5% of limit | A specific ratio to be tested for Injective. |
+| **Base Fee Adjustment**| Denominator of 8 | Denominator of 10 (MaxChangeRate 10%) | To allow for smoother fee adjustments. |
+| **Aggregation Logic** | Parent block's gas used | Test variable: `last_block`, `moving_average`, etc. | To find a stable update mechanism for fast block times. |
+
+## Simulation Framework
+
+The simulation is designed to be flexible and exploratory. Key parameters are centralized for easy modification.
+
+### Static Parameters
+- **INITIAL_BASEFEE**: 160,000,000
+- **MIN_BASE_FEE**: 160,000,000
+- **BASE_FEE_MAX_CHANGE_DENOMINATOR**: 10
+- **TARGET_GAS_RATIO**: 0.625
+
+### Exploratory Parameters
+The simulation is built to test the following variables:
+
+1.  **`BLOCK_MAX_GAS`**: The simulation will be run with both `150,000,000` and `300,000,000` to compare their effects on fee stability and throughput.
+
+2.  **`Aggregation Function`**: To counteract the potential volatility from fast block times, different gas aggregation functions will be tested. The framework allows for any function that accepts a history of gas usage and returns a single value. Initial functions for testing include:
+    - **`agg_last_block`**: The baseline, using only the parent block's gas. This is equivalent to the Ethereum EIP-1559 logic.
+    - **`agg_moving_average`**: A simple moving average over a configurable window of recent blocks (e.g., 25).
