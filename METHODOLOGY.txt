@@ -53,7 +53,35 @@ With the new logic in place, I will modify the execution part of the notebook. T
 ### 5. Visualization Update
 Finally, I will update the visualization code to plot the new metrics from the Injective-specific simulation. This includes plotting the instantaneous base fee against the moving average base fee to analyze stability.
 
+## Recent Changes (September 5, 2025)
 
+This section documents the modifications made to the simulation framework and the `abm1559` library to better align with Injective's EIP-1559 parameters and to address simulation behavior.
 
+### 1. `abm1559/utils.py` Modifications
 
+-   **Change:** `BASEFEE_MAX_CHANGE_DENOMINATOR` was updated from `8` to `10`. `TARGET_GAS_USED` and `MAX_GAS_EIP1559` constants were removed.
+-   **Reason:** This change aligns the base fee adjustment mechanism with Injective's specified `max_change_rate` (equivalent to a denominator of 10). Removing the hardcoded gas limits allows the simulation to dynamically use `block_max_gas` and `target_gas` values defined in the notebook, providing greater flexibility for Injective-specific parameter testing.
 
+### 2. `abm1559/txpool.py` Modifications
+
+-   **Change:** The `select_transactions` method was modified to accept `block_max_gas` and `target_gas` as arguments. The internal calculation of `max_tx_in_block` now uses the passed `block_max_gas`. Crucially, the soft limit `if current_gas_used >= target_gas: break` was removed from the transaction selection loop.
+-   **Reason:** Previously, the simulation was artificially capping the `gas_used` at `target_gas` due to an internal hardcoded limit within the `abm1559` library. This modification ensures that when demand is high, blocks can be filled up to the `block_max_gas` (hard cap), allowing `gas_used` to exceed `target_gas` and enabling the base fee to fluctuate more realistically in response to demand.
+
+### 3. `stationary1559 (1).ipynb` Modifications
+
+-   **Change:** Added `import numpy as np` to the initial import cell.
+-   **Reason:** The `numpy` library is essential for generating the new fluctuating demand scenarios.
+
+-   **Change:** The `demand_scenario` line was updated to use `np.random.normal` for a fluctuating demand. Example: `demand_scenario = [int(x) for x in np.random.normal(loc=6700, scale=2000, size=num_blocks)]`.
+-   **Reason:** A constant demand scenario prevented the base fee from exhibiting dynamic behavior. Introducing a fluctuating demand, where `gas_used` sometimes exceeds `target_gas`, is necessary to observe the base fee's adjustment mechanism in action.
+
+-   **Change:** The simulation execution line was updated to use `OptimisticUser` instead of `User1559`. Example: `(df, user_pool, chain) = simulate_injective(demand_scenario, OptimisticUser)`.
+-   **Reason:** The default `User1559` class had a "balking" behavior (users refusing to send transactions if their expected payoff was negative, based on a 5-block waiting time). This significantly limited the number of transactions entering the pool. Switching to `OptimisticUser` (which assumes immediate inclusion) reduces this balking, allowing more transactions to be submitted and blocks to fill more fully, thus better testing the base fee adjustment under high demand.
+
+-   **Change:** Added code to save the simulation results DataFrame (`df`) to a CSV file (`simulation_results.csv`).
+-   **Reason:** To facilitate easier analysis and sharing of the simulation results, especially given the challenges of directly inspecting Jupyter Notebook output.
+
+### 4. Workflow Improvement
+
+-   **Change:** The `sys.path.insert` line in the notebook was updated to `sys.path.insert(1, os.path.abspath('abm1559'))`.
+-   **Reason:** This ensures that the Jupyter Notebook correctly loads the locally modified `abm1559` library, resolving previous `NameError` and ensuring that all changes are applied during simulation runs.
