@@ -1,0 +1,40 @@
+# Project: Injective EVM EIP-1559 Simulation
+
+## Goal
+This project adapts the existing EIP-1559 agent-based simulation to model the specific implementation of the fee market for the Injective EVM. The primary objective is to create a flexible simulation environment to test and evaluate different network parameters before deploying them on-chain.
+
+## Key Decisions & Reasoning
+
+### 1. Isolate Injective-specific Logic
+
+**Decision:** Create new, separate files for Injective-specific logic (`injective_stationary.py`) and configuration (`injective_config.py`) rather than modifying the original simulation files directly.
+
+### 2. Implement Injective's Base Fee Update Mechanism
+
+**Decision:** Add a new function `update_basefee_injective` to `abm1559/simulator.py`.
+
+**Reasoning:** This is the most critical change, the base fee update must account for Injective's faster block times. A simple block-to-block update (like Ethereum's) would be too volatile. The new function will implement a moving average over a window of blocks (e.g., 25 blocks to simulate a ~15s timeframe) to smooth out fee adjustments. It will also enforce a `MIN_BASE_FEE` as a spam-resistance measure, which is another core requirement from the specification.
+
+### 3. Parameterize the Simulation Script
+
+**Decision:** The main simulation script, `injective_stationary.py`, will be designed to run experiments by accepting parameters as arguments.
+
+**Reasoning:** As requested, this allows for easy iteration and testing of different network parameters without changing the code for each run. We can define a list of scenarios (e.g., with `block_max_gas` at 150M and then 300M) and have the script loop through them, generating separate, clearly-labeled results for analysis.
+
+### 4. Implement Periodic Base Fee Reset
+
+**Decision:** The simulation loop in `injective_stationary.py` will include logic to reset the base fee to its initial value at a regular `RESET_INTERVAL`.
+
+**Reasoning:** This is a specific requirement from `injective.txt` to prevent long-term fee drift and ensure the market periodically returns to a known baseline.
+
+### 5. Increase Demand to Test Under Load (2025-09-06)
+
+**Decision:** Increase the `demand_lambda` parameter from 9,000 to 50,000.
+
+**Reasoning:** The simulation run with 9,000 users showed that for scenarios with a high `block_max_gas` (300M), the total potential gas demand was still too close to the target gas. This led to an unrealistic stabilization of the base fee (zero standard deviation). To properly test the dynamic behavior of the base fee mechanism under significant and sustained network congestion, a much higher demand is required. This new value ensures that the demand for block space consistently exceeds the target.
+
+### 6. Moderate Demand to Observe Dynamics (2025-09-06)
+
+**Decision:** Reduce `demand_lambda` from 50,000 to 15,000.
+
+**Reasoning:** The run with 50,000 users created a state of extreme, perpetual congestion, causing the base fee to increase exponentially without stabilizing. This test confirmed the mechanism's response to overwhelming demand. To better observe the nuanced dynamics of how the base fee finds and maintains an equilibrium, a more moderate (yet still high) level of demand is required. 15,000 users will still create significant competition for block space but should allow the base fee to stabilize in an observable range.
