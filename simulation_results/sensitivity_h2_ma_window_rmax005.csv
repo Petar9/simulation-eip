@@ -1,0 +1,9 @@
+window_size,config,scenario,peak_basefee_gwei,final_basefee_gwei,steady_state_gwei,mean_basefee_gwei,std_basefee_gwei,overshoot_pct,convergence_block,volatility_cv_pct,avg_utilization
+3,150M_66pct_ma25,variable_demand,0.256555,0.16,0.213226,0.204982,0.034315,20.32,0,16.4,1.0001
+3,300M_50pct_ma25,variable_demand,0.178141,0.16,0.166285,0.165252,0.006767,7.13,0,4.31,0.8333
+5,150M_66pct_ma25,variable_demand,0.256681,0.161039,0.212997,0.204754,0.034038,20.51,0,16.06,1.0001
+5,300M_50pct_ma25,variable_demand,0.177797,0.16,0.166154,0.165132,0.006631,7.01,0,4.23,0.8333
+10,150M_66pct_ma25,variable_demand,0.258019,0.165774,0.21117,0.204942,0.03304,22.19,0,15.06,1.0001
+10,300M_50pct_ma25,variable_demand,0.176211,0.16,0.16549,0.164575,0.006011,6.48,0,3.83,0.8333
+25,150M_66pct_ma25,variable_demand,0.267276,0.213505,0.226648,0.222252,0.029998,17.93,0,11.51,1.0001
+25,300M_50pct_ma25,variable_demand,0.170698,0.16,0.161828,0.161873,0.002845,5.48,0,1.54,0.8333
